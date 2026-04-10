@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wings of Fire Magic: The Gathering</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --fire: #ff4a10;
+      --fire-glow: rgba(255, 74, 16, 0.6);
+      --fire-dim: rgba(255, 74, 16, 0.15);
+      --gold: #f0c040;
+      --deep: #0d0618;
+      --mid: #1a0a2e;
+      --surface: #120820;
+      --text: #e8dff5;
+      --muted: #9988bb;
+      --blue-card: #1a6bbf;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Crimson Pro', Georgia, serif;
+      background-color: var(--deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── STARFIELD ── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: var(--lo, 0.2); }
+      50% { opacity: var(--hi, 0.8); }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 5rem 2rem 4rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,74,16,0.18) 0%, transparent 70%),
+                  linear-gradient(180deg, #1a0520 0%, var(--deep) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-emblem {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+      animation: float 4s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px var(--fire-glow));
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      font-weight: 700;
+      color: var(--fire);
+      text-shadow: 0 0 30px var(--fire-glow), 0 0 80px rgba(255,120,20,0.3);
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      letter-spacing: 1px;
+    }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+
+    .mana-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .mana {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.3);
+      transition: transform 0.2s;
+    }
+    .mana:hover { transform: scale(1.2); }
+    .mana-w { background: #c8b560; color: #3a2e00; }
+    .mana-u { background: #1a6bbf; color: #ddeeff; }
+    .mana-b { background: #2a1a3e; color: #cc99ff; border-color: #7744aa; }
+    .mana-r { background: #bf3a1a; color: #ffe0d0; }
+    .mana-g { background: #1a7a2a; color: #ccffcc; }
+
+    /* ── GALLERY SECTION ── */
+    .gallery-section {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .count-badge {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-left: 10px;
+      font-family: 'Crimson Pro', serif;
+    }
+
+    /* ── FILTERS ── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.9rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover {
+      border-color: var(--fire);
+      color: var(--fire);
+    }
+    .filter-btn.active {
+      background: var(--fire);
+      border-color: var(--fire);
+      color: white;
+      text-shadow: 0 0 8px rgba(255,74,16,0.5);
+    }
+
+    /* ── CARD GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 20px;
+    }
+
+    .card-item {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: fadeIn 0.4s ease both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card-item:hover {
+      transform: translateY(-6px) scale(1.02);
+      border-color: var(--fire);
+      box-shadow: 0 12px 32px rgba(255,74,16,0.25);
+    }
+
+    .card-art {
+      width: 100%;
+      aspect-ratio: 5/7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-art img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .card-art .art-placeholder {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .art-emoji { font-size: 48px; line-height: 1; }
+    .rarity-pip {
+      font-size: 10px;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-family: 'Cinzel Decorative', serif;
+      letter-spacing: 1px;
+    }
+    .loyalty-badge {
+      font-size: 11px;
+      color: var(--gold);
+      font-family: 'Cinzel Decorative', serif;
+    }
+
+    .original-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: var(--fire);
+      color: white;
+      font-size: 9px;
+      font-family: 'Cinzel Decorative', serif;
+      padding: 3px 8px;
+      border-radius: 10px;
+      letter-spacing: 1px;
+    }
+
+    .card-footer {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+    }
+    .card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .card-type-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 2, 15, 0.9);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--fire);
+      box-shadow: 0 0 60px rgba(255,74,16,0.2);
+      max-width: 520px;
+      width: 100%;
+      overflow: hidden;
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-inner { display: flex; }
+
+    .modal-art {
+      width: 190px;
+      min-width: 190px;
+      aspect-ratio: 5/7;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-art img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .modal-art .art-placeholder {
+      width: 100%; height: 100%;
+    }
+
+    .modal-info {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .modal-name {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .modal-type {
+      font-size: 0.85rem;
+      color: var(--fire);
+      font-style: italic;
+    }
+    .modal-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 4px 0;
+    }
+    .modal-ability {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+    .modal-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+    .stat-val { font-size: 1.2rem; font-weight: 600; color: var(--text); }
+    .loyalty-stat {
+      grid-column: span 2;
+      background: rgba(255,74,16,0.1);
+      border: 1px solid rgba(255,74,16,0.3);
+    }
+    .loyalty-stat .stat-val { color: var(--fire); font-size: 1.5rem; }
+
+    .modal-close {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-top: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.95rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 500px) {
+      .modal-inner { flex-direction: column; }
+      .modal-art { width: 100%; min-width: unset; aspect-ratio: 16/9; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Starfield -->
+<div id="starfield"></div>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-emblem">🐉</div>
+  <h1>Wings of Fire<br>Magic: The Gathering</h1>
+  <p class="hero-sub">Custom cards, hand-crafted with passion</p>
+  <div class="mana-row">
+    <div class="mana mana-w">W</div>
+    <div class="mana mana-u">U</div>
+    <div class="mana mana-b">B</div>
+    <div class="mana mana-r">R</div>
+    <div class="mana mana-g">G</div>
+  </div>
+</header>
+
+<!-- Gallery -->
+<main class="gallery-section">
+  <div class="section-header">
+    <div>
+      <span class="section-title">Card Collection</span>
+      <span class="count-badge" id="count-label"></span>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterCards('all', this)">All</button>
+      <button class="filter-btn" onclick="filterCards('Creature', this)">Creatures</button>
+      <button class="filter-btn" onclick="filterCards('Instant', this)">Instants</button>
+      <button class="filter-btn" onclick="filterCards('Sorcery', this)">Sorceries</button>
+      <button class="filter-btn" onclick="filterCards('Enchantment', this)">Enchantments</button>
+      <button class="filter-btn" onclick="filterCards('Artifact', this)">Artifacts</button>
+      <button class="filter-btn" onclick="filterCards('Planeswalker', this)">Planeswalkers</button>
+    </div>
+  </div>
+
+  <div class="card-grid" id="card-grid"></div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-inner">
+      <div class="modal-art" id="modal-art"></div>
+      <div class="modal-info">
+        <div class="modal-name" id="modal-name"></div>
+        <div class="modal-type" id="modal-type"></div>
+        <hr class="modal-divider">
+        <div class="modal-ability" id="modal-ability"></div>
+        <div class="modal-stats" id="modal-stats"></div>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">✕ Close</button>
+  </div>
+</div>
+
+<footer>
+  Wings of Fire Magic: The Gathering &mdash; inspiring new players one spell at a time
+</footer>
+
+<script>
+  /* ── CARD DATA ──
+     To add your own cards:
+     1. Upload your image to the images/ folder on GitHub
+     2. Copy one of the card objects below and fill in your details
+     3. Set image: "images/your-filename.png"  (or art: "🎨" if no image yet)
+  */
+  const cards = [
+    {
+      name: "Martin, Master of Mischief",
+      type: "Creature",
+      color: "#1a6bbf",
+      cost: "1UU",
+      power: "3",
+      toughness: "3",
+      desc: "Whenever you tap a creature, create a 1/1 Creature token named Martin.",
+      rarity: "Rare",
+      image: "images/martin-master-of-mischief.png",
+      real: true
+    },
+    {
+      name: "Emberstone Drake",
+      type: "Creature — Dragon",
+      color: "#bf3a1a",
+      cost: "3RR",
+      power: "4",
+      toughness: "3",
+      desc: "Flying. When Emberstone Drake enters the battlefield, it deals 2 damage to any target.",
+      rarity: "Rare",
+      art: "🐉"
+    },
+    {
+      name: "Moonveil Sage",
+      type: "Creature — Human Wizard",
+      color: "#1a6bbf",
+      cost: "2U",
+      power: "2",
+      toughness: "3",
+      desc: "When Moonveil Sage enters the battlefield, scry 2, then draw a card.",
+      rarity: "Uncommon",
+      art: "🧙"
+    },
+    {
+      name: "Root Ancient",
+      type: "Creature — Treefolk",
+      color: "#1a7a2a",
+      cost: "4GG",
+      power: "6",
+      toughness: "7",
+      desc: "Vigilance, Reach. Other Forests you control produce an additional G.",
+      rarity: "Mythic",
+      art: "🌳"
+    },
+    {
+      name: "Shadow Rift",
+      type: "Instant",
+      color: "#5a2a8e",
+      cost: "1B",
+      desc: "Target creature gains deathtouch and menace until end of turn. Draw a card.",
+      rarity: "Common",
+      art: "🌑"
+    },
+    {
+      name: "Cinderstorm",
+      type: "Instant",
+      color: "#bf3a1a",
+      cost: "XRR",
+      desc: "Cinderstorm deals X damage divided as you choose among any number of targets.",
+      rarity: "Uncommon",
+      art: "🔥"
+    },
+    {
+      name: "Sunforged Aegis",
+      type: "Enchantment",
+      color: "#c8a820",
+      cost: "2W",
+      desc: "At the beginning of your upkeep, create a 1/1 white Soldier token with lifelink.",
+      rarity: "Rare",
+      art: "🛡️"
+    },
+    {
+      name: "Vaultkeeper's Lens",
+      type: "Artifact",
+      color: "#888780",
+      cost: "2",
+      desc: "Tap: Scry 1.\nTap, pay 3: Draw a card.\nArtifact spells you cast cost 1 less to cast.",
+      rarity: "Rare",
+      art: "🔮"
+    },
+    {
+      name: "Ashen Decree",
+      type: "Sorcery",
+      color: "#bf3a1a",
+      cost: "3BR",
+      desc: "Destroy all non-Dragon creatures. For each creature destroyed this way, you gain 1 life.",
+      rarity: "Rare",
+      art: "📜"
+    },
+    {
+      name: "Verdant Awakening",
+      type: "Sorcery",
+      color: "#1a7a2a",
+      cost: "2GG",
+      desc: "Search your library for up to three basic land cards, put them onto the battlefield tapped, then shuffle.",
+      rarity: "Uncommon",
+      art: "🌿"
+    },
+    {
+      name: "Skyra, Flame Eternal",
+      type: "Planeswalker — Skyra",
+      color: "#ff4a10",
+      cost: "3RR",
+      loyalty: "4",
+      desc: "+1: Deal 2 damage to any target.\n−2: Create two 1/1 red Dragon tokens with flying.\n−7: Each opponent loses life equal to the number of Dragons you control.",
+      rarity: "Mythic",
+      art: "🦅"
+    },
+    {
+      name: "Thalor of the Deep",
+      type: "Planeswalker — Thalor",
+      color: "#1a6bbf",
+      cost: "4UU",
+      loyalty: "5",
+      desc: "+2: Draw a card, then discard a card.\n−3: Counter target spell.\n−8: Take an extra turn after this one.",
+      rarity: "Mythic",
+      art: "🌊"
+    }
+  ];
+
+  /* ── RARITY COLORS ── */
+  const rarityColors = {
+    Common:   { bg: "rgba(150,150,150,0.2)", text: "#aaaaaa", border: "rgba(150,150,150,0.4)" },
+    Uncommon: { bg: "rgba(100,180,210,0.2)", text: "#88ccdd", border: "rgba(100,180,210,0.4)" },
+    Rare:     { bg: "rgba(200,180,80,0.2)",  text: "#d4b840", border: "rgba(200,180,80,0.4)"  },
+    Mythic:   { bg: "rgba(255,100,30,0.2)",  text: "#ff7830", border: "rgba(255,100,30,0.4)"  }
+  };
+
+  function getBg(color) {
+    return `background: ${color}20; border: 2px solid ${color}55;`;
+  }
+
+  function renderCards(filter) {
+    const grid = document.getElementById('card-grid');
+    const filtered = filter === 'all' ? cards : cards.filter(c => c.type.startsWith(filter));
+    const label = document.getElementById('count-label');
+    label.textContent = `— ${filtered.length} card${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No cards in this category yet.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map((c, fi) => {
+      const idx = cards.indexOf(c);
+      const rc = rarityColors[c.rarity] || rarityColors.Common;
+      const pip = `<span class="rarity-pip" style="background:${rc.bg};color:${rc.text};border:1px solid ${rc.border};">${c.rarity}</span>`;
+
+      let artHtml;
+      if (c.image) {
+        artHtml = `
+          <img src="${c.image}" alt="${c.name}"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="art-placeholder" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;${getBg(c.color)}">
+            <span class="art-emoji">🃏</span>
+            ${pip}
+          </div>`;
+      } else {
+        artHtml = `
+          <div class="art-placeholder" style="${getBg(c.color)}">
+            <span class="art-emoji">${c.art}</span>
+            ${pip}
+            ${c.loyalty ? `<span class="loyalty-badge">Loyalty: ${c.loyalty}</span>` : ''}
+          </div>`;
+      }
+
+      return `
+        <div class="card-item" onclick="openModal(${idx})" style="animation-delay:${fi * 0.05}s">
+          <div class="card-art">
+            ${artHtml}
+            ${c.real ? '<div class="original-badge">Original</div>' : ''}
+          </div>
+          <div class="card-footer">
+            <div class="card-name">${c.name}</div>
+            <div class="card-type-label">${c.type}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterCards(type, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards(type);
+  }
+
+  function openModal(i) {
+    const c = cards[i];
+    const rc = rarityColors[c.rarity] || rarityColors.Common;
+
+    // Art side
+    const artEl = document.getElementById('modal-art');
+    if (c.image) {
+      artEl.innerHTML = `
+        <img src="${c.image}" alt="${c.name}"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="art-placeholder" style="display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;gap:8px;${getBg(c.color)}">
+          <span style="font-size:64px;">🃏</span>
+          <span style="font-size:12px;color:${c.color};">Image coming soon</span>
+        </div>`;
+    } else {
+      artEl.innerHTML = `
+        <div class="art-placeholder" style="width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center;gap:10px;${getBg(c.color)}">
+          <span style="font-size:72px;">${c.art}</span>
+          <span style="font-size:13px;color:${c.color};">${c.cost}</span>
+        </div>`;
+    }
+
+    document.getElementById('modal-name').textContent = c.name;
+    document.getElementById('modal-type').textContent = `${c.type} · ${c.rarity} · ${c.cost}`;
+    document.getElementById('modal-ability').textContent = c.desc;
+
+    const statsEl = document.getElementById('modal-stats');
+    if (c.power != null) {
+      statsEl.innerHTML = `
+        <div class="stat"><span class="stat-label">Power</span><span class="stat-val">${c.power}</span></div>
+        <div class="stat"><span class="stat-label">Toughness</span><span class="stat-val">${c.toughness}</span></div>`;
+    } else if (c.loyalty) {
+      statsEl.innerHTML = `
+        <div class="stat loyalty-stat"><span class="stat-label">Starting Loyalty</span><span class="stat-val">${c.loyalty}</span></div>`;
+    } else {
+      statsEl.innerHTML = `
+        <div class="stat" style="grid-column:span 2"><span class="stat-label">Mana Cost</span><span class="stat-val">${c.cost}</span></div>`;
+    }
+
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal')) closeModal();
+  }
+
+  /* ── STARFIELD ── */
+  const sf = document.getElementById('starfield');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --lo:${(Math.random()*0.3+0.1).toFixed(2)};
+      --hi:${(Math.random()*0.5+0.4).toFixed(2)};
+      --d:${(Math.random()*4+2).toFixed(1)}s;
+      --delay:-${(Math.random()*5).toFixed(1)}s;
+    `;
+    sf.appendChild(s);
+  }
+
+  /* ── INIT ── */
+  renderCards('all');
+</script>
+</body>
+</html>
